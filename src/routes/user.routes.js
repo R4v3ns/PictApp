@@ -1,14 +1,16 @@
-const { Router } = require('express')
-
-const router = Router()
+const { Router } = require('express');
+const router = Router();
 
 // Controllers
-const { register, viewProfile } = require("../controllers/user.controller")
-const { like } = require('../controllers/like.controllers')
+const { register, viewProfile } = require("../controllers/user.controller");
+const { createLike, getLikes } = require('../controllers/like.controller'); // importar ambas funciones
 
-// Register Route
-router.post("/register", register)
-router.post("/profile/:id", viewProfile)
-router.post("/like", like)
+// Rutas de usuario
+router.post("/register", register);              // Crear usuario
+router.get("/profile/:id", viewProfile);        // Ver perfil de usuario (GET es más común para obtener datos)
 
-module.exports = router
+// Rutas de likes
+router.post("/like", createLike);               // Crear un nuevo like
+router.get("/likes", getLikes);                // Obtener todos los likes
+
+module.exports = router;
