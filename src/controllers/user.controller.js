@@ -74,7 +74,39 @@ const register = async (req = request, res = response) => {
         })
     }
 }
+/**
+ * Visualize the user profile
+ * localhost:8080/api/users/:id
+ */
 
+const viewProfile = async (req = request, res = response) => {
+    const { id } = req.params
+    
+    try {
+        const user = await User.findById(id, {
+            attibutes: (exclued ['password', 'createdAt', 'updatedAt', 'email','password','bio','profilePicture', 'deleted,'])
+        })
+        if (!user) {
+            return res.status(404).json({msg:"User not found."})
+        }
+        if (user.deleted) {
+            return res.status(410).json({msg:"User aaccount has been disable, please contact the support."})
+
+        }
+
+        res.status(200).json({ 
+            data: user,
+            message: "User profile retrieved successfully"
+        })
+            
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({
+            message: "Internal server error"
+        })
+    }
+}
 module.exports = {
-    register
+    register,
+    viewProfile
 }
