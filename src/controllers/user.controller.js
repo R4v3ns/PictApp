@@ -12,13 +12,13 @@ const register = async (req = request, res = response) => {
 
     try {
         // Check the userName
-        const existingUserName = await User.findOne({ userName })
+        const existingUserName = await User.findOne({ where: { userName } })
         if (existingUserName) {
             return res.status(400).json({msg:"Username already exists, try again"})
         }
 
         // Check the email
-        const existingUser = await User.findOne({ email })
+        const existingUser = await User.findOne({ where: { email } })
         if (existingUser) {
             return res.status(400).json({msg:"Invalid operation, cannot register the user."})
         }
@@ -28,17 +28,20 @@ const register = async (req = request, res = response) => {
             return res.status(400).json({msg:"All fields are required."})
         }
 
+        // Ensure password is a string
+        const passwordString = String(password)
+
         // Validation of the max lenght
-        if (userName.length > 15 || email.length > 100 || password.length > 15|| password.length < 8 || bio.length > 255 || profilePicture.length > 255) {
+        if (userName.length > 15 || email.length > 100 || passwordString.length > 15|| passwordString.length < 8 || bio.length > 255 || profilePicture.length > 255) {
             return res.status(400).json({msg:"Max length exceeded."})
         }
 
+        
         // Hash the password
-        const salt = bcryptjs.genSaltSync(10)
-        const hashedPassword = bcryptjs.hashSync(password, salt)
+        const hashedPassword = bcryptjs.hashSync(passwordString, 10)
 
         // Create the user
-        const user = new User({
+        const user = await User.create({
             userName,
             email,
             password: hashedPassword,
@@ -47,10 +50,8 @@ const register = async (req = request, res = response) => {
             birthDay
         })
 
-        await user.save()
-
         // Generate JWT
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' })
+        const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1d' })
 
         const userData = {
             id: user.id,
@@ -83,15 +84,14 @@ const viewProfile = async (req = request, res = response) => {
     const { id } = req.params
     
     try {
-        const user = await User.findById(id, {
-            attibutes: (exclued ['password', 'createdAt', 'updatedAt', 'email','password','bio','profilePicture', 'deleted,'])
+        const user = await User.findByPk(id, {
+            attributes: { exclude: ['password', 'createdAt', 'updatedAt'] }
         })
         if (!user) {
             return res.status(404).json({msg:"User not found."})
         }
         if (user.deleted) {
-            return res.status(410).json({msg:"User aaccount has been disable, please contact the support."})
-
+            return res.status(410).json({msg:"User account has been disabled, please contact support."})
         }
 
         res.status(200).json({ 
@@ -106,7 +106,52 @@ const viewProfile = async (req = request, res = response) => {
         })
     }
 }
+
+/**
+ * Login user
+ */
+const login = async (req = request, res = response) => {
+    const { email, password } = req.body
+    try {
+        const user = await User.findOne({ where: { email } })
+        if (!user) {
+            return res.status(404).json({msg:"User not found."})
+        }
+        if (user.deleted) {
+            return res.status(410).json({msg:"User account has been disabled, please contact support."})
+        }
+
+        const passwordString = String(password)
+        if (passwordString.length > 15 || passwordString.length < 8) {
+            return res.status(400).json({msg:"Password must be between 8 and 15 characters."})
+        }
+
+        // Check the password
+        const isPasswordValid = bcryptjs.compareSync(passwordString, user.password)
+        if (!isPasswordValid) {
+            return res.status(401).json({msg:"Invalid password."})
+        }
+        const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1d' })
+        const userData = {
+            id: user.id,
+            userName: user.userName,
+            email: user.email,
+            bio: user.bio,
+            profilePicture: user.profilePicture,
+            birthDay: user.birthDay,
+            token
+        }
+        res.status(200).json({
+            data: userData,
+            message: "User logged in successfully"
+        })
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({message:"Internal server error"})
+    }
+}
 module.exports = {
     register,
-    viewProfile
+    viewProfile,
+    login
 }

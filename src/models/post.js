@@ -29,6 +29,14 @@ Post.init({
         type: DataTypes.STRING,
         allowNull: true
     },
+    userId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'user',
+            key: 'id'
+        }
+    },
     // Soft delete
     deleted: {
         type: DataTypes.BOOLEAN,
@@ -43,7 +51,7 @@ Post.init({
 })
 
 Post.associate = (models) => {
-    Post.belongsTo(models.User, { foreignKey: 'userId', as: 'author' })
+    Post.belongsTo(models.User, { foreignKey: 'userId', as: 'user' })
     Post.hasMany(models.Comment, { foreignKey: 'postId', as: 'comments' })
     Post.hasMany(models.Like, { foreignKey: 'postId', as: 'likes' })
 }
