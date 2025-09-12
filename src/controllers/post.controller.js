@@ -6,27 +6,28 @@ const Comment = require('../models/comment');
  * Create a new post
  */
 const createPost = async (req, res) => {
-    const { title, content, image } = req.body;
-    const userId = req.user.id; // Obtener el ID del usuario autenticado
+    const { image, imageFooter, location } = req.body;
+    const userId = req.user.id;
 
     try {
-        // Validation of the required data
-        if (!title || !content || !image) {
-            return res.status(400).json({ msg: "Title, content and image are required." });
+        // Validation - solo image es obligatorio según tu modelo
+        if (!image) {
+            return res.status(400).json({ msg: "Image is required." });
         }
 
         // Create the post
         const post = await Post.create({
-            "title": title,
-            "content": content,
-            "image": image,
-            "userId": userId
+            image: image,
+            imageFooter: imageFooter || null,
+            location: location || null,
+            userId: userId,
+            likeCount: 0 // default value
         });
 
         res.status(201).json({ msg: "Post created successfully.", post });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ msg: "Server error." });
+        console.error('CreatePost error:', error);
+        res.status(500).json({ msg: "Server error.", error: error.message });
     }
 }
 
@@ -35,13 +36,22 @@ const createPost = async (req, res) => {
  */
 const getPosts = async (req, res) => {
     try {
-        const posts = await Post.findAll();
+        const posts = await Post.findAll({
+            include: [
+                {
+                    model: User,
+                    attributes: ['id', 'userName', 'email']
+                }
+            ],
+            order: [['createdAt', 'DESC']]
+        });
         res.status(200).json({ posts });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ msg: "Server error." });
+        console.error('GetPosts error:', error);
+        res.status(500).json({ msg: "Server error.", error: error.message });
     }
 }
+
 /**
  * Add a comment to a post
  */
@@ -62,14 +72,14 @@ const addComment = async (req, res) => {
 
         const comment = await Comment.create({
             content,
-            postId: post.id,
+            postId: parseInt(postId),
             userId
         });
 
         res.status(201).json({ msg: "Comment added successfully.", comment });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ msg: "Server error." });
+        console.error('AddComment error:', error);
+        res.status(500).json({ msg: "Server error.", error: error.message });
     }
 }
 
@@ -90,7 +100,7 @@ const getCommentsByPost = async (req, res) => {
             include: [
                 {
                     model: User,
-                    attributes: ['id', 'username', 'name']
+                    attributes: ['id', 'userName', 'email'] // Cambié 'username' por 'userName'
                 }
             ],
             order: [['createdAt', 'ASC']]
@@ -98,8 +108,8 @@ const getCommentsByPost = async (req, res) => {
 
         res.status(200).json({ comments });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ msg: "Server error." });
+        console.error('GetCommentsByPost error:', error);
+        res.status(500).json({ msg: "Server error.", error: error.message });
     }
 }
 
