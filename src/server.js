@@ -19,6 +19,7 @@ class Server {
         // Paths
         this.paths = {
             users: "/api/users",
+            posts: "/api/posts"  //  Ruta agregada para posts
         };
 
         // Database connection
@@ -64,6 +65,7 @@ class Server {
     
     routes() {
         this.app.use(this.paths.users, require("./routes/user.routes"));
+        this.app.use(this.paths.posts, require("./routes/post.routes"));  // Ruta agregada para posts
     }
     
     listen() {
