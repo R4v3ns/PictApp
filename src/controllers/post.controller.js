@@ -95,14 +95,15 @@ const getCommentsByPost = async (req, res) => {
             return res.status(404).json({ msg: "Post not found." });
         }
 
+        // Temporalmente sin include para evitar errores de asociación
         const comments = await Comment.findAll({
-            where: { postId },
-            include: [
+            where: { postId },            include: [
                 {
                     model: User,
                     attributes: ['id', 'userName', 'email'] // Cambié 'username' por 'userName'
                 }
             ],
+
             order: [['createdAt', 'ASC']]
         });
 
