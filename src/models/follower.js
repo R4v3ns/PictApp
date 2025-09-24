@@ -1,35 +1,31 @@
-const { DataTypes, Model } = require('sequelize')
-const db = require('../config/database')
+const { DataTypes, Model } = require('sequelize');
+const db = require('../config/database');
 
-class Follower extends Model {
+class Follow extends Model {
     static id
-    static userId
-    static followerId
-    static deleted    
-
 }
 
-Follower.init({
+Follow.init({
     deleted: {
         type: DataTypes.BOOLEAN,
-        allowNull: false,
-        defaultValue: false
+        defaultValue: false,
+        allowNull: false
     }
 }, {
     sequelize: db,
-    modelName: 'Follower',
-    tableName: 'follower',
+    modelName: 'Follow',
+    tableName: 'follows',
     timestamps: true
 });
 
-Follower.associate = (models) => {
-    Follower.belongsTo(models.User, { foreignKey: 'userId', as: 'user' });
-    Follower.belongsTo(models.User, { foreignKey: 'followerId', as: 'follower' });
+Follow.associate = (models) => {
+    Follow.belongsTo(models.User, { foreignKey: 'followerId', as: 'follower' });
+    Follow.belongsTo(models.User, { foreignKey: 'followingId', as: 'following' });
 }
 
-Follower.prototype.toJSON = function () {
-    const { ...follower } = this.get()
-    return follower
+Follow.prototype.toJSON = function () {
+    const { ...follow } = this.get();
+    return follow;
 }
 
-module.exports = Follower
+module.exports = Follow;

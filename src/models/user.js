@@ -1,5 +1,5 @@
-const { DataTypes, Model } = require('sequelize')
-const db = require('../config/database')
+import { DataTypes, Model } from 'sequelize';
+import db from '../config/database';
 
 class User extends Model {
     static id
@@ -57,8 +57,8 @@ User.associate = (models) => {
     User.hasMany(models.Post, { foreignKey: 'userId', as: 'posts' })
     User.hasMany(models.Comment, { foreignKey: 'userId', as: 'comments' })
     User.hasMany(models.Like, { foreignKey: 'userId', as: 'likes' })
-    User.hasMany(models.User, { foreignKey: 'userId', as: 'following' })
-    User.belongsTo(User, { foreignKey: 'userId', as: 'followers' })
+    User.hasMany(models.Follow, { foreignKey: 'followerId', as: 'following' });
+    User.hasMany(models.Follow, { foreignKey: 'followingId', as: 'followers' });
 }
 
 User.prototype.toJSON = function () {
@@ -67,4 +67,4 @@ User.prototype.toJSON = function () {
     return user;
 }
 
-module.exports = User;
+export default User;

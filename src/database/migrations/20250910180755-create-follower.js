@@ -3,46 +3,48 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up (queryInterface, Sequelize) {
-    await queryInterface.createTable('follower', {
+    return queryInterface.createTable('follows', {
       id: {
-        allowNull: false,
+        type: Sequelize.INTEGER,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER
+        allowNull: false
       },
       followerId: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'Users',
+          model: 'users',
           key: 'id'
         },
-        onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
       },
       followingId: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'Users',
+          model: 'users',
           key: 'id'
         },
-        onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
       },
       createdAt: {
-        allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
+        allowNull: false
       },
       updatedAt: {
+        type: Sequelize.DATE,
+        allowNull: false
+      },
+      deleted: {
+        type: Sequelize.BOOLEAN,
         allowNull: false,
-        type: Sequelize.DATE
+        defaultValue: false
       }
     });
-  
   },
 
   async down (queryInterface, Sequelize) {
-    await queryInterface.dropTable('follower');
+    return queryInterface.dropTable('follows');
   }
 };
