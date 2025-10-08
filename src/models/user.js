@@ -63,7 +63,6 @@ User.associate = (models) => {
 
 User.prototype.toJSON = function () {
     const { password, ...user } = this.get();
-    delete password
     return user;
 }
 
